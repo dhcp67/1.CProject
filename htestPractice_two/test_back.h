@@ -1,9 +1,12 @@
 /*************************************************************************
-	> File Name: test.c
+	> File Name: test.h
 	> Author: lichun
 	> Mail: 318082789@qq.com
 	> Created Time: 2019年05月18日 星期六 18时32分41秒
  ************************************************************************/
+#ifndef _TEST_H
+#define _TEST_H
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -33,15 +36,17 @@ __attribute__((constructor)) void FuncName(add_Test, __COUNTER__)() { \
     head = p; \
 } \
 void FuncName(a, FuncName(_, FuncName(b, FuncName(_, Test))))()
-#define EXPECT_EQ(a, b) printf("[  resault ]  %s\n", a == b ? "\033[32mtrue\033[0m" : "\033[31mfalse\033[0m")
+#define EXPECT_EQ(a, b) printf("[ result ]%s\n", a == b ? "\033[32mtrue\033[0m" : "\033[31mfalse\033[0m")
 
 int RUN_ALL_TESTS() {
     pFuncData p = head;
     while (p != NULL) {
-        printf("[  RUN     ]  %s.%s\n", p->name_part1, p->name_part2);
+        printf("[   RUN  ] %s.%s\n", p->name_part1, p->name_part2);
         p->func();
         p = p->next;
         printf("[       OK ]\n");
     }
     return 0;
 }
+
+#endif
