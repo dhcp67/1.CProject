@@ -17,12 +17,12 @@ typedef struct Node{
 
 Linkedlist linkedlist;
 
-int chac(Linkedlist linkedlist, Node *node) { //查重
+int chac(Linkedlist linkedlist, char *name) { //查重
     Node *p;
     p = linkedlist;
     int ret = 1;
     while (p->next != NULL) {
-        if(p->next->fd == node->fd && strcmp(p->next->name, node->name) == 0) {
+        if(strcmp(p->next->name, name) == 0) {
             ret = 0;
             printf("重复\n不能登录\n");
         }
@@ -34,7 +34,7 @@ int chac(Linkedlist linkedlist, Node *node) { //查重
 void insert(Linkedlist linkedlist, Node *node) {
     Node *p;
     p = linkedlist;
-    if(!chac(linkedlist, node)) {
+    if(!chac(linkedlist, node->name)) {
         return ;
     }
     while (p->next != NULL) {
@@ -53,6 +53,7 @@ Linkedlist CreateNode(int fd, char *name) {
     return p;
 }
 
+
 void delete(Linkedlist linkedlist, const char *name) {
     Node *p, * q;
     p  = linkedlist;
@@ -70,7 +71,7 @@ void output(Linkedlist linkedlist) {
     p = linkedlist;
     while (p->next != NULL) {
         p = p->next;
-        printf("%s\n", p->name);
+        printf("%s\t", p->name);
     }
     return ;
 }
@@ -88,6 +89,8 @@ int main() {
     strcpy(q->name,"pi11");
     insert(linkedlist, q);
     output(linkedlist);
+    //chac(linkedlist, pi1)?:;
+
     
     Node *a = (Node *)malloc(sizeof(Node));
     a->next = NULL;

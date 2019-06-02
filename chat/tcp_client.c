@@ -92,7 +92,15 @@ int main(int argc, char *argv[]) {
     if (pid != 0) {
         signal(SIGINT, logout);
         struct Message recv_message;
-        //if((new_sock= accept(sock_fd), (struct sockaddr *)&)) //<<
+        int port = 8731;
+        struct sockaddr_in peer_addr;
+        peer_addr.sin_family = AF_INET;
+        peer_addr.sin_port = htons(port);
+        peer_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        int len = sizeof(struct sockaddr);
+        if((new_sock= accept(sock_fd, (struct sockaddr *)&peer_addr,&len)) < 0) {
+            
+        } //<<
         while (recv(sock_fd, (char *)&recv_message, sizeof(recv_message), 0) > 0) {
             freopen(log, "a+", stdout);
             if (recv_message.flag == 0) {
