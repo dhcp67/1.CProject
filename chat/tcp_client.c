@@ -52,7 +52,7 @@ int socket_connect(int port, char *host) {
 int main(int argc, char *argv[]) {
     
     
-    int sock_fd;
+    int sock_fd, new_sock;
     char temp_client[5] = {0};
     char temp_server[5] = {0};
     if (argc != 1) {
@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
     if (pid != 0) {
         signal(SIGINT, logout);
         struct Message recv_message;
+        //if((new_sock= accept(sock_fd), (struct sockaddr *)&)) //<<
         while (recv(sock_fd, (char *)&recv_message, sizeof(recv_message), 0) > 0) {
             freopen(log, "a+", stdout);
             if (recv_message.flag == 0) {
