@@ -66,11 +66,9 @@ int main(int argc, char *argv[]) {
     //get_conf_value(config, "Server_Ip", server_ip);
     client_port = atoi(temp_client);
     //server_port = atoi(temp_server);
-    struct passwd *pwd;
-    pwd = getpwuid(getuid());
     server_port = 8731;
     strcpy(temp_server,"8731");
-    strcpy(name, pwd->pw_name);
+    strcpy(name, "My_Name");
     strcpy(log, "Log_File");
     strcpy(server_ip, "192.168.2.45");
 
