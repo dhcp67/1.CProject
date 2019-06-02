@@ -6,10 +6,9 @@
  ************************************************************************/
 
 #ifndef DEBUG
-#define DBG(a, b) printf(a,b);
-#else 
 #define DBG(a,b) 
-#define
+#else 
+#define DBG(a, b) printf(a,b);
 #endif
 
 #include <stdio.h>

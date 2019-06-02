@@ -80,8 +80,6 @@ int main(int argc, char *argv[]) {
             return -1;
         }
 
-    
-
     send(sock_fd, name, strlen(name) + 1, 0);
     
     int pid = 0;
@@ -124,7 +122,6 @@ int main(int argc, char *argv[]) {
             memset(buff, 0, sizeof(buff));
             system("clear");
         }
-
         close(sock_fd);
     }
     return 0;

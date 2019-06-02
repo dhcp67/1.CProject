@@ -40,7 +40,7 @@ int main() {
     pid_t pid;
 	int sport = 8731;
     int gport = 8731;
-	char ip_addr[20] = "192.168.2.40";
+	char ip_addr[20] = "192.168.2.45";
 	struct passwd *pwd;
 
     pwd = getpwuid(getuid());
