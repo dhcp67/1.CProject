@@ -19,7 +19,7 @@
 typedef struct Message{
     char from[20];
     int flags;
-    char mesag[1024];
+    char message[1024];
 } Msg;
 
 void SignalFun() {
@@ -39,7 +39,7 @@ int main() {
     pid_t sip;
     pid_t pid;
 	int sport = 8731;
-    int gport = 8732;
+    int gport = 8731;
 	char ip_addr[20] = "192.168.2.40";
 	struct passwd *pwd;
 
@@ -59,23 +59,20 @@ int main() {
     gip = fork();
     if (gip == 0) {
 
-    if(connect(socket_fd, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0) {
-        perror("connect() error");
-    }
-        
-
+        if(connect(socket_fd, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0) {
+            perror("connect() error");
+        }
         send(socket_fd, umyname, strlen(umyname), 0);
         while(1) {
-            system("clear");
-            char tmp[1024];
-            scanf("%s", tmp);
-            getchar();
-            send(socket_fd, tmp, strlen(tmp), 0);
-
-        }
+             system("clear");
+             char tmp[1024];
+             scanf("%s", tmp);
+             getchar();
+             send(socket_fd, tmp, strlen(tmp), 0);
+            }
     }
-    struct sockaddr_in my_addr;
-	memset(&my_addr, 0, sizeof(my_addr));
+    struct      sockaddr_in my_addr;
+	memset(     &my_addr, 0, sizeof(my_addr));
 	my_addr.sin_family = AF_INET;
 	my_addr.sin_port = htons(gport);
 	my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -99,11 +96,10 @@ int main() {
         if((recv(new_socket, &buff, sizeof(buff), 0)) > 0) {
             printf("%s", buff.from);
             printf("%d", buff.flags);
-            printf("%s", buff.mesag);
+            printf("%s", buff.message);
         }
         close(new_socket);
         kill(ppid, 14);
-        kill(2,ppid);
         exit(0);
     }
 	return 0;
