@@ -1,5 +1,5 @@
 /*************************************************************************
-	> File Name: 185_client.c
+	> File Name: tcp_client.c
 	> Author: 
 	> Mail: 
 	> Created Time: Sat 23 Feb 2019 14:26:47 CST
@@ -14,6 +14,11 @@ char server_ip[20] = {0};
 char buff[1024] = {0};
 char log[100] = {0};
 
+struct Message {
+    char from[20];
+    int flag;
+    char message[1024];
+};
 
 void logout(int sig) {
     freopen(log, "a+", stdout);
@@ -21,6 +26,32 @@ void logout(int sig) {
     fclose(stdout);
     _exit(0);
 }
+
+
+//int socket_connect(int port, char *host) {
+//	int sockfd;
+//	struct sockaddr_in dest_addr;
+//	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+//		perror("socket() error");
+//		return -1;
+//	}
+//
+//	memset(&dest_addr, 0, sizeof(dest_addr));
+//	dest_addr.sin_family = AF_INET;
+//	dest_addr.sin_port = htons(port);
+//	dest_addr.sin_addr.s_addr = inet_addr(host);
+//
+//	//DBG("Connetion TO %s:%d\n",host,port);
+//	//fflush(stdout);
+//	if (connect(sockfd, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0) {
+//		//perror("connect() error");
+//		//DBG("connect() error : %s!\n", stderror(errno));
+//		return -1;
+//	}
+//	return sockfd;
+//
+//}
+
 
 int main(int argc, char *argv[]) {
     
@@ -42,7 +73,7 @@ int main(int argc, char *argv[]) {
 
     if ((sock_fd = socket_connect(server_port, server_ip)) < 0) {
             printf("Error in connect!\n");
-            DBG("%s",strerror(errno));
+            //DBG("%s",strerror(errno));
             return -1;
         }
 
