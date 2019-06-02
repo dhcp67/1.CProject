@@ -62,13 +62,17 @@ int main() {
     if(connect(socket_fd, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0) {
         perror("connect() error");
     }
+        
 
         send(socket_fd, umyname, strlen(umyname), 0);
-        char op[10] = "#";
-        send(socket_fd, op, strlen(op), 0);
+        while(1) {
+            system("clear");
+            char tmp[1024];
+            scanf("%s", tmp);
+            getchar();
+            send(socket_fd, tmp, strlen(tmp), 0);
 
-        sleep(2);
-        exit(0);
+        }
     }
     struct sockaddr_in my_addr;
 	memset(&my_addr, 0, sizeof(my_addr));
