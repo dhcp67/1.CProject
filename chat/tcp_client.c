@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     strcpy(temp_server,"8731");
     strcpy(name, pwd->pw_name);
     strcpy(log, "Log_File");
-    strcpy(server_ip, "192.168.2.45");
+    strcpy(server_ip, "192.168.2.103");
 
     if ((sock_fd = socket_connect(server_port, server_ip)) < 0) {
             printf("Error in connect!\n");

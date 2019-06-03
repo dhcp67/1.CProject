@@ -49,7 +49,7 @@ int main() {
     if ((socket_fd = socket_connect(port, ip_addr)) > 0) {
         printf("OK\n");
     }
-    strcpy(username, "11");
+    strcpy(username, username);
     send(socket_fd, username, strlen(username), 0);
 	close(socket_fd);
 	return 0;

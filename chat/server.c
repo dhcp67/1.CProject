@@ -80,15 +80,41 @@ void delete(Linkedlist linkedlist, const char *name) {
     free(q);
 }
 
-void *output(Linkedlist linkedlist) {
+void output(Linkedlist linkedlist) {
     Node *p;
     p = linkedlist;
     while (p->next != NULL) {
         p = p->next;
         printf("%s\t", p->name);
     }
+    return;
 }
 
+void *pth(void *arg) {
+    struct tmpp *tmp = (struct tmpp *)arg;
+    int new_sock = tmp->fd;
+    char buff[1024] = {0};
+    if((recv(new_sock, tmp->name, sizeof(tmp->name), 0)) > 0) {
+        printf("%s 已上线\n", tmp->name);
+        //ip地址：printf("%s",inet_ntoa(peer_addr.sin_addr));
+        Node *q = (Node *)malloc(sizeof(Node));
+
+        q->next = NULL;
+        q->fd = new_sock;
+        strcpy(q->name,buff);
+        output(linkedlist);
+    }else{
+        sleep(1);
+        printf("%s已下线\n", tmp->name);
+        delete(linkedlist, tmp->name);
+        output(linkedlist);
+    } 
+
+}
+struct tmpp{
+    char name[20];
+    int fd;
+};
 
 int main() {
     int port = 8731;
@@ -120,37 +146,12 @@ int main() {
             perror("accept() error");
             return 1;
             exit(0);
-        } 
-        signal(14,SignalFun);
-        pid = fork();
-        if(pid >  0) {
-            close(new_sock);
-            continue;
         }
-        pid_t ppid = getppid();
-        char buff[1024] = {0};
-        char username[20];
-        if((recv(new_sock, buff, sizeof(buff), 0)) > 0) {
-            printf("%s 已上线\n", buff);
-            //ip地址：printf("%s",inet_ntoa(peer_addr.sin_addr));
-            Node *q = (Node *)malloc(sizeof(Node));
-
-            q->next = NULL;
-            q->fd = new_sock;
-            strcpy(q->name,buff);
-            output(linkedlist);
-        }else{
-            sleep(1);
-            printf("%s已下线\n", username);
-            delete(linkedlist, username);
-            output(linkedlist);
-        } 
-            
-            close(new_sock);
-            kill(ppid, 14);
-            exit(0);
+        sgnal(14,SignalFun);
+        struct tmpp ooo;
+        ooo.fd = new_sock;
+        pthread_t pp;
+        pthread_create(&pp, NULL, output, (void *)&ooo);
     }
-    close(new_sock);
-    close(sock_fd);
     return 0;
 }
