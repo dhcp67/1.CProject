@@ -92,11 +92,11 @@ int main() {
     //chac(linkedlist, pi1)?:;
 
     
-    Node *a = (Node *)malloc(sizeof(Node));
-    a->next = NULL;
-    a->fd = 1;
-    strcpy(a->name,"pi11");
-    insert(linkedlist, a);
+    p = (Node *)malloc(sizeof(Node));
+    p->next = NULL;
+    p->fd = 1;
+    strcpy(p->name,"pi221");
+    insert(linkedlist, p);
     output(linkedlist);
 
     Node *w = (Node *)malloc(sizeof(Node));
