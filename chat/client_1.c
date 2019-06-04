@@ -42,7 +42,7 @@ int main() {
 	int  socket_fd;
 	struct passwd *pwd;
     pwd = getpwuid(getuid());
-	char ip_addr[20] = "192.168.2.103";
+	char ip_addr[20] = "192.168.43.117";
 	int port = 8731;
     char username[20] = {0};
     strcpy(username, pwd->pw_name);

@@ -40,7 +40,7 @@ int main() {
     pid_t pid;
 	int sport = 8731;
     int gport = 8731;
-	char ip_addr[20] = "192.168.2.103";
+	char ip_addr[20] = "192.168.43.117";
 	struct passwd *pwd;
 
     pwd = getpwuid(getuid());
@@ -76,11 +76,6 @@ int main() {
 	my_addr.sin_family = AF_INET;
 	my_addr.sin_port = htons(gport);
 	my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    if(bind(socket_fd, (struct sockaddr *)&my_addr, sizeof(my_addr)) < 0) {
-        perror("bind() error");
-    }
-    listen(socket_fd, 20);
-    socklen_t len = sizeof(struct sockaddr);
     while(1) {
         if((new_socket = accept(socket_fd, (struct sockaddr *)&my_addr, &len)) < 0) {
             perror("accept() error");

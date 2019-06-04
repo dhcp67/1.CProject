@@ -131,8 +131,7 @@ int main() {
         char buff[1024] = {0};
         char username[20];
         if((recv(new_sock, buff, sizeof(buff), 0)) > 0) {
-            printf("%s 已上线\n", buff);
-            //ip地址：printf("%s",inet_ntoa(peer_addr.sin_addr));
+            printf("%s 已上线  ip %s\n", buff,inet_ntoa(peer_addr.sin_addr));
             Node *q = (Node *)malloc(sizeof(Node));
 
             q->next = NULL;

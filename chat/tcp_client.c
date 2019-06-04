@@ -72,15 +72,8 @@ int main(int argc, char *argv[]) {
     strcpy(temp_server,"8731");
     strcpy(name, pwd->pw_name);
     strcpy(log, "Log_File");
-    strcpy(server_ip, "192.168.2.103");
+    strcpy(server_ip, "192.168.43.117");
 
-    if ((sock_fd = socket_connect(server_port, server_ip)) < 0) {
-            printf("Error in connect!\n");
-            //DBG("%s",strerror(errno));
-            return -1;
-        }
-
-    send(sock_fd, name, strlen(name) + 1, 0);
     
     int pid = 0;
 

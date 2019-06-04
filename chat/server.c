@@ -17,17 +17,23 @@
 #include <signal.h>
 #include <pthread.h>
 
-void SignalFun() {
-    int status;
-    wait(&status);
-}
-
+struct tmpp{
+    char name[20];
+    int new_sock;
+    pthread_t pp;
+    struct Node *link;
+};
 
 typedef struct Node{
     int fd;
     char name[20];
     struct Node *next;
 } Node, *Linkedlist;
+
+void SignalFun() {
+    int status;
+    wait(&status);
+}
 
 Linkedlist linkedlist;
 
@@ -38,7 +44,8 @@ int chac(Linkedlist linkedlist, char *name) { //查重
     while (p->next != NULL) {
         if(strcmp(p->next->name, name) == 0) {
             ret = 0;
-            printf("重复\n不能登录\n");
+            printf("用户名重复\n不能登录\n");
+            break;
         }
         p = p->next;
     }
@@ -83,43 +90,53 @@ void delete(Linkedlist linkedlist, const char *name) {
 void output(Linkedlist linkedlist) {
     Node *p;
     p = linkedlist;
+    if (p == NULL) {
+        printf("NULL\n");
+        return ;
+    }
+    printf("在线用户:\n");
+    int cnt = 0;
     while (p->next != NULL) {
         p = p->next;
-        printf("%s\t", p->name);
+        cnt++;
+        printf("%s  \n", p->name);
     }
+    printf("一共%d人在线\n", cnt);
     return;
 }
 
 void *pth(void *arg) {
-    struct tmpp *tmp = (struct tmpp *)arg;
-    int new_sock = tmp->fd;
+    struct tmpp *tmp;
+    tmp = (struct tmpp *)arg;
+    int new_sock;
+    new_sock = tmp->new_sock;
     char buff[1024] = {0};
-    if((recv(new_sock, tmp->name, sizeof(tmp->name), 0)) > 0) {
-        printf("%s 已上线\n", tmp->name);
+
+    Node *q = (Node *)malloc(sizeof(Node));
+    if((recv(new_sock, buff, sizeof(buff), 0)) > 0) {
+        strcpy(q->name, buff);
+        printf("%s 已上线\n", q->name);
         //ip地址：printf("%s",inet_ntoa(peer_addr.sin_addr));
-        Node *q = (Node *)malloc(sizeof(Node));
-
         q->next = NULL;
-        q->fd = new_sock;
-        strcpy(q->name,buff);
-        output(linkedlist);
-    }else{
-        sleep(1);
-        printf("%s已下线\n", tmp->name);
-        delete(linkedlist, tmp->name);
-        output(linkedlist);
-    } 
-
+        q->fd = tmp->new_sock;
+        insert(tmp->link, q);
+        output(tmp->link);
+    }
+    while(1){
+        if((recv(new_sock, buff, sizeof(buff), 0)) > 0) {
+            printf("%s %s\n", q->name,buff);
+        }else{
+            printf("%s已下线\n", q->name);
+            delete(linkedlist, q->name);
+            close(tmp->new_sock);
+            output(linkedlist);
+            return (void *)0;
+        } 
+    }
 }
-struct tmpp{
-    char name[20];
-    int fd;
-};
 
 int main() {
     int port = 8731;
-    pid_t pid;
-    pid_t pid_s;
     int sock_fd, new_sock;
     if((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket() error");
@@ -140,18 +157,18 @@ int main() {
     p->fd = 0;
     strcpy(p->name,"super man:");
     linkedlist = p;
+    int cnt = 0;
+    pthread_t pp[100];
 
-    while(1) {
+    while(++cnt && cnt < 100) {
         if((new_sock = accept(sock_fd, (struct sockaddr *) &peer_addr, &len)) < 0) {
             perror("accept() error");
-            return 1;
-            exit(0);
+            continue;
         }
-        sgnal(14,SignalFun);
         struct tmpp ooo;
-        ooo.fd = new_sock;
-        pthread_t pp;
-        pthread_create(&pp, NULL, output, (void *)&ooo);
+        ooo.new_sock = new_sock;
+        ooo.link = linkedlist;
+        pthread_create(&(pp[cnt]), NULL, pth, (void *)&ooo);
     }
     return 0;
 }
