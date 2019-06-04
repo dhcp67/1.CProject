@@ -11,17 +11,20 @@
 #include <stdlib.h>
 
 void Signal() {
+    
     printf("程序已退出\n");
-    _exit(0);
+    exit(0);
 }
 
 int main() {
     pid_t ppid;
     signal(SIGINT,Signal);
     ppid = fork();
+    if(ppid > 0) {
     int a;
     scanf("%d", &a);
     printf("%d\n", a);
+    }
     //kill(ppid,2);
     return 0;
 }
