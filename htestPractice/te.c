@@ -16,7 +16,7 @@ int main() {
     scanf("%d", &a);
     scanf("%d", &b);
     char str[100];
-    strcpy(str,pastes(a,b));
+    strcpy(str,__pastes(a,b));
     printf("%s\n",str);
     return 0;
 }
