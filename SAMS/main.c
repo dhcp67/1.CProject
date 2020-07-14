@@ -21,26 +21,11 @@ int main() {
     return 0;
 }
 
-//提示函数
-void tip_p(int x, int y, char *meg) {
-    move(x, y);
-    addstr(meg);
-}
-
 //提示结构体
 struct Tip{
     char **meg;
     void (* tip_set)(int , int , char *);
 };
-
-//提示结构体初始化函数
-void tip_init(int total, int length, Tip *tip) {
-    tip->tip_set = tip_p;
-    tip->meg = (char **)malloc(sizeof(char *) * total);
-    for (int i = 0; i < total; i++) {
-        tip->meg[i] = (char *)malloc(sizeof(char) * length);
-    }
-}
 
 //提示结构体结束函数
 void tip_end(int total, int length, Tip *tip) {
@@ -63,7 +48,7 @@ void printscr() {
     tip_init(_TOTLE, _LENGTH, &tip);
     //添加一个标题
     strcpy(tip.meg[0], "学生成绩管理系统");
-    strcpy(tip.meg[1], "提示：输入q,回车退出");
+    strcpy(tip.meg[1], "提示(回车结束输入)：输入q：退出");
     strcpy(tip.meg[2], "您的输入为 ：");
     strcpy(tip.meg[3], "正在输入ing：");
     //一个字符串用来输出
@@ -75,7 +60,17 @@ void printscr() {
         winbd(30, 2 * get_winsize(ROW));
         //绘制提示信息
         tip.tip_set(0, 2 * (get_winsize(ROW) - sizeof(tip.meg)), tip.meg[0]);
+
+        //绘制有颜色的提示信息
+		if(start_color()==OK) { //判断终端是否支持有颜色输出
+		    sta_color(2, 1, COLOR_RED, COLOR_BLACK, tip.meg[1]);
+        }
+		else
+		{
         tip.tip_set(2, 1, tip.meg[1]);
+		}
+        
+        //tip.tip_set(2, 1, tip.meg[1]);
         tip.tip_set(3, 1, tip.meg[2]);
         tip.tip_set(4, 1, tip.meg[3]);
 
@@ -111,13 +106,12 @@ void printscr() {
     return ;
 }
 
-//窗口边框初始化
+//宏定义添加显示字符串
+#define _addcol addstr("│");
+#define _addrow addstr("─");
+#define _mid 10
+//窗口边框绘制
 void winbd(int x, int y) {
-    //宏定义添加显示字符串
-    #define _addcol addstr("│");
-    #define _addrow addstr("─");
-    #define _mid 10
-    
     for(int i = 0; i < x; i++) {
         //左边框
         move(i, 0);
