@@ -13,12 +13,12 @@
 //获取窗口尺寸函数
 int get_winsize(int flag) {
     struct winsize size;
-    int ret;
+    int ret = 0;
     ioctl(STDIN_FILENO,TIOCGWINSZ,&size);
 
     /*
-     *flag == COL 返回列数
-     *flag == ROW 返回行数
+     *flag == COL 返回高度
+     *flag == ROW 返回宽幅
      *否则返回（传入错误flag） -1
      */
     switch (flag) {
@@ -34,6 +34,5 @@ int get_winsize(int flag) {
             ret = -1;
         }
     }
-
     return ret; 
 }

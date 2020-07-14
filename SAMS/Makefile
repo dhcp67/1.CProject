@@ -1,11 +1,11 @@
 # make_file
 
 CC=gcc
-file=main.o common.o
+file=common.o main.o
 
-a.out : $(file)
-	# make a.out
-	${CC} -o $@ ${file} -lcurses
+run : $(file)
+	# make run
+	${CC} -o $@ ${file} -lncursesw
 
 main.o : main.c
 	${CC} -c main.c -o $@
@@ -13,7 +13,7 @@ main.o : main.c
 common.o: common.c
 	${CC} -c common.c -o $@
 
-# #.PHONY: clear
+#.PHONY: clear
 clear: 
-	rm *.o
+	rm *.o run
 	@echo "OK"

@@ -9,5 +9,6 @@
 #include "common.h"
 
 int main() {
-    printf("COL = %d, ROW = %d\n", get_winsize(COL), get_winsize(ROW));
+    printf("COL = %ld", sizeof(int));
+    printf("\033[47;31mThis is a color test.\033[0m\n");
 }
