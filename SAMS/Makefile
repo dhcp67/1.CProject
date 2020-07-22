@@ -1,19 +1,28 @@
+#------------------------------------------------------#
+#- Author: Allen Lee
+#- Mail: trainlee1024@gmail.com
+#------------------------------------------------------#
+
 # make_file
 
 CC=gcc
-file=common.o main.o
+file=test.o
 
 run : $(file)
 	# make run
-	${CC} -o $@ ${file} -lncursesw
+	${CC} -o $@ ${file}
 
-main.o : main.c
-	${CC} -c main.c -o $@
+#.PHONY: debug
+debug: ${file}
+	${CC} -g -DDEBUG -o $@ test.c
+
+test.o : test.c
+	${CC} -c test.c -o $@
 
 common.o: common.c
 	${CC} -c common.c -o $@
 
 #.PHONY: clear
 clear: 
-	rm *.o run
+	rm *.o run debug
 	@echo "OK"

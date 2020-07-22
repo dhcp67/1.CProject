@@ -37,21 +37,16 @@ int get_winsize(int flag) {
     int ret = 0;
     ioctl(STDIN_FILENO,TIOCGWINSZ,&size);
 
-    /*
-     *flag == COL 返回高度
-     *flag == ROW 返回宽幅
-     *否则返回（传入错误flag） -1
-     */
     switch (flag) {
-        case COL: {
+        case COL: { //flag == COL 返回高度
             ret = size.ws_col;
             break;
         }
-        case ROW: {
+        case ROW: { //flag == ROW 返回宽幅
             ret = size.ws_row;
             break;
         }
-        default : {
+        default : { //否则返回-1(传入错误flag)
             ret = -1;
         }
     }
@@ -61,11 +56,11 @@ int get_winsize(int flag) {
 //添加有颜色的输出
 void sta_color(int x, int y, int foreground, int background, char *p) {
 	init_pair(1, foreground, background); //初始化颜色，前景、背景
-    //开始有颜色输出
-	attron(COLOR_PAIR(1));
+
+	attron(COLOR_PAIR(1));                //开始有颜色输出
 	move(x, y);
 	addstr(p);
-    //结束有颜色输出
-	attroff(COLOR_PAIR(1));/*close color show*/
+    
+	attroff(COLOR_PAIR(1));               //结束有颜色输出
 }
 

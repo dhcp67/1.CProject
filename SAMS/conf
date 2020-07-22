@@ -1,0 +1,7 @@
+INS=2
+From=127.0.0.1
+To=127.0.0.1
+ClientHeart=8000
+ServerPort=8731
+TimeOut=3000
+HealthLog=./Healthed.log
