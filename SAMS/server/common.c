@@ -315,7 +315,7 @@ char *get_date_time() {
     int min = p->tm_min;                                        //获取当前分
     int sec = p->tm_sec;                                        //获取当前秒
 
-    sprintf(str, "%d-%02d-%02d-%02d-%02d-%02d", year, mon, day, hour, min, sec); //格式化到字符串
+    sprintf(str, "%d-%02d-%02d %02d:%02d:%02d", year, mon, day, hour, min, sec); //格式化到字符串
 
     return str;
 

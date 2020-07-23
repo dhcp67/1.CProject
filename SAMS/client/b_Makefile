@@ -6,15 +6,15 @@
 # make_file
 
 CC=gcc
-file=server.o common.o
+file=test.o
 
-server : $(file)
-	@# make server
-	${CC} -o $@ ${file} -lpthread
+run : $(file)
+	# make run
+	${CC} -o $@ ${file}
 
 #.PHONY: debug
 debug: ${file}
-	${CC} -g -DDEBUG -o $@ ${file} -lpthread
+	${CC} -g -DDEBUG -o $@ test.c
 
 test.o : test.c
 	${CC} -c test.c -o $@
@@ -24,5 +24,5 @@ common.o: common.c
 
 #.PHONY: clear
 clear: 
-	rm *.o server debug
+	rm *.o run debug
 	@echo "OK"
