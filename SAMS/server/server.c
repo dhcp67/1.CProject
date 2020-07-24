@@ -5,7 +5,7 @@
 	> Created Time: Sat Jul 18 17:18:58 2020
  ************************************************************************/
 
-#include "common.h"
+#include "scommon.h"
 
 int main() {
 

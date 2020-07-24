@@ -6,7 +6,7 @@
 # make_file
 
 CC=gcc
-file=server.o common.o
+file=server.o scommon.o
 
 server : $(file)
 	@# make server
@@ -19,8 +19,8 @@ debug: ${file}
 test.o : test.c
 	${CC} -c test.c -o $@
 
-common.o: common.c
-	${CC} -c common.c -o $@
+scommon.o: scommon.c
+	${CC} -c scommon.c -o $@
 
 #.PHONY: clear
 clear: 

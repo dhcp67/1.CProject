@@ -91,15 +91,17 @@ STU_M *sort_by_name(STU_M *);                   //按姓名的字典顺序排出
 STU_M *get_server_student();                    //从服务器获取学生数据
 
 
-int get_winsize(int ); //获取窗口尺寸函数
-void gui();//页面框架
-int ctrl(int ,int , STU_M *); //控制函数
+int ctrl(int ,int , STU_M *);                   //控制函数
+int get_winsize(int );                          //获取窗口尺寸函数
+void gui();                                     //页面框架
 void menu();                                    //菜单
-void color_print(int x, int y, int foreground, int background, char *p); //添加有颜色的输出
+void color_print(int x, int y, int foreground, int background, char *p, int *); //添加有颜色的输出
 
-char *INTIP = "(正在输入->)";
+static char *INTIP = "(正在输入->)";
+int color_flag = 1;
+
 //菜单二维数组
-char menu_str[17][45] = {
+static char menu_str[17][45] = {
     "                              ",
     "1.  输入记录                  ",
     "2.  输出学生信息              ",
@@ -134,93 +136,70 @@ int ctrl(int flag, int sockfd, STU_M *stu) {
             print_msg(stu);
             break;
         }
-        case 3: {
+        case 3: {               //按学号搜索
             search_by_Num(stu);
             break;
         }
-        case 4: {
-            system("clear");  //清屏
-            printf("\n\n\n");
-            printf("\t\t\t******************************************************************************\n");
-            printf("\t\t\t请输入你想要搜索的姓:\n");
+        case 4: {               //按姓名搜索
             search_by_Name(stu);
             break;
         }
-        case 5: {
-            system("clear");  //清屏
+        case 5: {               //计算每个同学的总分和平均分
             sum_avg_every_student(stu);
             break;
         }
-        case 6: {
-            system("clear");  //清屏
-            printf("\n\n\n");
-            printf("\t\t\t按分数升序排序:\n");
+        case 6: {               //按成绩降序排序
             stu = sort_by_score(stu);
             print_msg(stu);
             break;
         }
-        case 7: {
-            system("clear");  //清屏
-            printf("\n\n\n");
-            printf("\t\t\t按分数升序排序:\n");
+        case 7: {               //按成绩升序排序
             stu = sort_by_score_reverse(stu);
             print_msg(stu);
             break;
         }
-        case 8: {
-            system("clear");  //清屏
-            printf("\n\n\n");
-            printf("\t\t\t按学号升序排:\n");
+        case 8: {               //按学号升序排序
             stu = sort_by_num(stu);
             print_msg(stu);
             break;
         }
-        case 9: {
-            system("clear");  //清屏
-            printf("\n\n\n");
-            printf("\t\t\t按名字的字典序排:\n");
+        case 9: {               //按姓名字典序排序
             stu = sort_by_name(stu);
             print_msg(stu);
             break;
         }
-        case 10: {
+        case 10: {              //按学号删除
             on_id_del(stu);
             break;
         }
-        case 11: {
+        case 11: {              //按姓名删除
             on_name_del(stu);
             break;
         }
-        case 12: {
-            system("clear");
+        case 12: {              //删除全部学生
             all_del(stu);
             break;
         }
-        case 13: {
-            system("clear");  //清屏
+        case 13: {              //统计分析
             statistic_analysis(stu);
             break;
         }
-        case 14: {
-            system("clear");  //清屏
+        case 14: {              //计算每门课程的总分和平均分
             sum_avg_every_course(stu);
             break;
         }
-        case 15: {
-            system("clear");  //清屏
+        case 15: {              //保存到服务器
             save_to_server(stu, sockfd);
             break;
         }
         case 0: {
             over(sockfd);
             ret = FALSE; 
+            break;
         }
         default: {
-            system("clear");  //清屏
-            printf("\n\n\n");
-            printf("\t\t\t******************************************************************************\n");
-            printf("\t\t\t输入错误!\n");
-            printf("\t\t\t******************************************************************************\n");
+            ret = -1;
+            break;
         }
     }
     return ret;
@@ -236,9 +215,12 @@ int main() {
     get_conf_value(CONF_FILE, "ServerPort", port);//获取端口
     sockfd = socket_connect(ip, atoi(port)); 
     if (sockfd < 0) {
+        writ_log_file(FALSE, "连接失败"); //写日志
+        endwin();
         printf("连接失败\n");
         exit(-1);
     }
+    writ_log_file(TRUE, "已经连接上服务器"); //写日志
 
     setlocale(LC_ALL,"");                //设置编码
     WINDOW *wind = initscr();            //初始化一个窗口
@@ -252,10 +234,14 @@ int main() {
     while(con) {
         gui();                                          //创建框架
         menu();                                         //创建菜单
-        color_print(18, 3, COLOR_BLUE, COLOR_BLACK, INTIP); //有颜色输出
+        if (con < 0) {
+            color_print(19, 3, COLOR_RED, COLOR_BLACK, "输入错误，请重新输入", &color_flag); //有颜色输出
+        }
+        color_print(18, 3, COLOR_BLUE, COLOR_BLACK, INTIP, &color_flag); //有颜色输出
         refresh();                                      //刷新窗口
         move(18, 17);                                   //移动
         getstr(in);                                     //输入
+        //flag = atoi(in);                          //输入转整型   
         flag = str_to_int(in);                          //输入转整型   
         con = ctrl(flag, sockfd, stu);                  //调用操作函数
         erase();                                        //清屏
@@ -381,7 +367,7 @@ char *get_date_time() {
     int min = p->tm_min;                                                        //获取当前分
     int sec = p->tm_sec;                                                        //获取当前秒
 
-    sprintf(str, "%d-%02d-%02d-%02d-%02d-%02d", year, mon, day, hour, min, sec); //格式化到字符串
+    sprintf(str, "%d-%02d-%02d %02d:%02d:%02d", year, mon, day, hour, min, sec); //格式化到字符串
 
     return str;
 
@@ -459,8 +445,8 @@ void print_msg(STU_M *stu) {
     free(str);                          //释放str空间 
     ++line;                             //行+1                            
     ++line;                             //行+1
-    move(line, 4);                      //移动
-    addstr("按任意键返回菜单");         //添加到屏幕
+    color_print(line, 4, COLOR_BLUE, COLOR_BLACK, \
+                "按任意键返回菜单", &color_flag);
     refresh();                          //刷新
     getch();                            //输入一个字符
     return ;
@@ -468,10 +454,13 @@ void print_msg(STU_M *stu) {
 
 //字符串转换为整数
 int str_to_int(char *str) {
-    int ret = 0, tmp = 1;
+    int ret = -1, tmp = 1;
     int len = strlen(str);
-    //if (len == 0) ret = -1;
+    if (len == 0) ret = -1;
     for (int i = len - 1; i >= 0; i--) {        //逆序遍历字符串
+        if (!i) {
+            ret += 1;
+        }
         if (str[i] >= '0' && str[i] <= '9') {   //如果字符是0-9
             ret += tmp * (str[i] - '0');        //计算值
         } else {
@@ -529,291 +518,389 @@ STU_M *creat(STU_M *stu) {
 
 //计算每门课程的总分和平均分
 void  sum_avg_every_course(STU_M *stu) {
-        STU * head = stu->head;
-    int n = stu->stu_num, m = stu->course_num;
-        STU *p;
-        int  j = 1;
-        char ch;
-        float sum;
-        p = head;
-        if (head != NULL) {
-                printf("\t\t\t******************************************************************************\n");
-                for (int i = 0; i < m; i++) {
-                        p = head;
-                        sum = 0.0;
-                        do {
-                                sum += p->score[i];
-                                p = p->next;
-                        } while (p != NULL);
+    erase();                //清屏
+    gui();                  //画框架
+    int line = 4;
+    char *str = (char *)malloc(sizeof(char) * 2 * MAX_LEN);
+    STU * head = stu->head; //头结点
+    int n = stu->stu_num, m = stu->course_num; //n为学生数
+    STU *p;                 //p用来遍历
+    float sum;              //sum用来记总分
+    p = head;               //p等于头结点
 
-                        printf("\t\t\tcourse %s:    sum=%.0f , aver=%.0f\n", stu->course_name[i], sum, sum / n);
-                        j++;
-                }
-                printf("\t\t\t******************************************************************************\n");
+    sprintf(str, "每门课平均分和总分");
+    move(line, (get_winsize(COL) - strlen(str))/ 2);
+    addstr(str);
+    //循环遍历并统计总分和平均分
+    ++line;
+    if (head != NULL) {     
+        for (int i = 0; i < m; i++) {
+            p = head;
+            sum = 0.0;
+            do {
+                sum += p->score[i];         //循环累加总分
+                p = p->next;
+            } while (p != NULL);
 
+            ++line;
+            sprintf(str, "%s 课程:  总分=%.0f , 平均分=%.0f",\
+                    stu->course_name[i], sum, sum / n);         //格式化输出到str
+            move(line, (get_winsize(COL) - strlen(str)) / 2);   //移动
+            addstr(str);                                        //添加到屏幕
+            refresh();                                          //刷新
         }
+
+    }
+    line += 2;
+    sprintf(str, "按任意键回到菜单");
+    color_print(line, (get_winsize(COL) - strlen(str)) / 2,\
+                COLOR_BLUE, COLOR_BLACK, str, &color_flag);
+    getch();                //读取一个字符
+    free(str);              //释放str
+    str = NULL;             //str指向NULL，避免野指针
+    return ;
 }
 
 //计算每个学生的总分和平均分
 void  sum_avg_every_student(STU_M *stu) {
-    STU *node = stu->head;
-    while (node) {
-        float sum = 0.0;
-        for (int i = 0; i < stu->course_num; i++) {
-            sum += node->score[i];
+    STU *node = stu->head;                              //定义一个节点等于头节点
+    while (node) {                                      //循环计算
+        float sum = 0.0;                                //定义一个和变量
+        for (int i = 0; i < stu->course_num; i++) {     //循环相加
+            sum += node->score[i];                      
         }
-        node->sum = sum;
-        node->aver = sum / stu->course_num;
-        node = node->next;
+        node->sum = sum;                                //节点总成绩赋值
+        node->aver = sum / stu->course_num;             //节点平均成绩赋值
+        node = node->next;                              //节点指向下一个节点
     }
-    print_msg(stu);
+    print_msg(stu);                                     //打印学生信息
     return ;
 }
 
 STU_M  *sort_by_score(STU_M *stu) {
     STU *head = stu->head;
     int n = stu->stu_num;
-        STU *endpt;    //控制循环比较
-        STU *p;        //临时指针变量
-        STU *p1, *p2;
+    STU *endpt;    //控制循环比较
+    STU *p;        //临时指针变量
+    STU *p1, *p2;
 
-        p1 = (STU *)malloc(LEN);
-        p1->next = head;        //注意理解：我们增加一个节点，放在第一个节点的前面，主要是为了便于比较。因为第一个节点没有前驱，我们 不能交换地址
-        head = p1;                 //让head指向p1节点，排序完成后，我们再把p1节点释放掉
+    p1 = (STU *)malloc(LEN);    //定义一个虚拟p1节点
+    p1->next = head;            //p1下个节点指向头节点
+    head = p1;                  //让head指向p1节点，排序完成后，我们再把p1节点释放掉
 
-        for (endpt = NULL; endpt != head; endpt = p) {
-                for (p = p1 = head; p1->next->next != endpt; p1 = p1->next) {
-                        if (p1->next->sum < p1->next->next->sum)  { //如果前面的节点键值比后面节点的键值大，则交换
-                                p2 = p1->next->next;
-                                p1->next->next = p2->next;
-                                p2->next = p1->next;
-                                p1->next = p2;
-                                p = p1->next->next;
-                        }
-                }
+    //循环排序(冒泡排序)
+    for (endpt = NULL; endpt != head; endpt = p) {      
+        for (p = p1 = head; p1->next->next != endpt; p1 = p1->next) {
+            if (p1->next->sum < p1->next->next->sum)  { //如果前面的节点键值比后面节点的键值大，则交换
+                p2 = p1->next->next;
+                p1->next->next = p2->next;
+                p2->next = p1->next;
+                p1->next = p2;
+                p = p1->next->next;
+            }
         }
+    }
 
-        p1 = head;              //把p1的信息去掉
-        head = head->next;       //让head指向排序后的第一个节点
-        free(p1);          //释放p1
-        p1 = NULL;          //p1置为NULL，保证不产生“野指针”，即地址不确定的指针变量
+    p1 = head;                  //把p1的信息去掉
+    head = head->next;          //让head指向排序后的第一个节点
+    free(p1);                   //释放p1
+    p1 = NULL;                  //p1置为NULL，避免野指针
     stu->head = head;
-        return stu;
+    return stu;
 }
 
 STU_M  *sort_by_score_reverse(STU_M *stu) {
-    STU *head = stu->head;
-    int n = stu->stu_num;
-        STU *endpt;    //控制循环比较
-        STU *p;        //临时指针变量
-        STU *p1, *p2;
+    STU *head = stu->head;  //定义一个头节点
+    int n = stu->stu_num;   //n为学生数
+    STU *endpt;    //控制循环比较
+    STU *p;        //临时指针变量
+    STU *p1, *p2;
 
-        p1 = (STU *)malloc(LEN);
-        p1->next = head;        //注意理解：我们增加一个节点，放在第一个节点的前面，主要是为了便于比较。因为第一个节点没有前驱，我们 不能交换地址
-        head = p1;                 //让head指向p1节点，排序完成后，我们再把p1节点释放掉
+    p1 = (STU *)malloc(LEN);
+    p1->next = head;        //定义一个虚拟节点
+    head = p1;              //让head指向p1节点，排序完成后，我们再把p1节点释放掉
 
-        for (endpt = NULL; endpt != head; endpt = p) {
-                for (p = p1 = head; p1->next->next != endpt; p1 = p1->next) {
-                        if (p1->next->sum > p1->next->next->sum)  {     //如果前面的节点键值比后面节点的键值大，则交换
-                                p2 = p1->next->next;
-                                p1->next->next = p2->next;
-                                p2->next = p1->next;
-                                p1->next = p2;
-                                p = p1->next->next;
-                        }
-                }
+    //循环排序(冒泡排序)
+    for (endpt = NULL; endpt != head; endpt = p) {
+        for (p = p1 = head; p1->next->next != endpt; p1 = p1->next) {
+            if (p1->next->sum > p1->next->next->sum)  {     //如果前面的节点键值比后面节点的键值大，则交换
+                p2 = p1->next->next;
+                p1->next->next = p2->next;
+                p2->next = p1->next;
+                p1->next = p2;
+                p = p1->next->next;
+            }
         }
+    }
 
-        p1 = head;              //把p1的信息去掉
-        head = head->next;       //让head指向排序后的第一个节点
-        free(p1);          //释放p1
-        p1 = NULL;          //p1置为NULL，保证不产生“野指针”，即地址不确定的指针变量
+    p1 = head;              //把p1的信息去掉
+    head = head->next;      //让head指向排序后的第一个节点
+    free(p1);               //释放p1
+    p1 = NULL;              //p1置为NULL，避免野指针
     stu->head = head;
-        return stu;
+    return stu;
 }
 
 STU_M *sort_by_num(STU_M *stu) {
     STU *head = stu->head;
-        STU *first;    //为原链表剩下用于直接插入排序的节点头指针
-        STU *t;        //临时指针变量：插入节点
-        STU *p, *q;     //临时指针变量
+    STU *first;    //为原链表剩下用于直接插入排序的节点头指针
+    STU *t;        //临时指针变量：插入节点
+    STU *p, *q;     //临时指针变量
 
-        first = head->next;      //原链表剩下用于直接插入排序的节点链表：可根据图12来理解
-        head->next = NULL;       //只含有一个节点的链表的有序链表：可根据图11来理解
+    first = head->next;      //原链表剩下用于直接插入排序的节点链表：可根据图12来理解
+    head->next = NULL;       //只含有一个节点的链表的有序链表：可根据图11来理解
 
-        while (first != NULL) {  //遍历剩下无序的链表
-                //注意：这里for语句就是体现直接插入排序思想的地方
-                for (t = first, q = head; ((q != NULL) && (q->id < t->id)); p = q, q = q->next);  //无序节点在有序链表中找插入的位置
+    while (first != NULL) {  //遍历剩下无序的链表
+        //注意：这里for语句就是体现直接插入排序思想的地方
+        for (t = first, q = head; ((q != NULL) && (q->id < t->id)); p = q, q = q->next);  //无序节点在有序链表中找插入的位置
 
-                first = first->next; //无序链表中的节点离开，以便它插入到有序链表中
+        first = first->next; //无序链表中的节点离开，以便它插入到有序链表中
 
-                if (q == head) {     //插在第一个节点之前
-                        head = t;
-                }
-                else {           //p是q的前驱
-                        p->next = t;
-                }
-                t->next = q;     //完成插入动作
-                                                 //first = first->next;
+        if (q == head) {     //插在第一个节点之前
+            head = t;
         }
+        else {           //p是q的前驱
+            p->next = t;
+        }
+        t->next = q;     //完成插入动作
+                                             //first = first->next;
+    }
     stu->head = head;
-        return stu;
+    return stu;
 }
 
 STU_M  *sort_by_name(STU_M *stu) {
-    int n = stu->stu_num;
-    STU *head = stu->head;
-        STU *endpt;    //控制循环比较
-        STU *p;        //临时指针变量
-        STU *p1, *p2;
+    int n = stu->stu_num;   //n为学生数
+    STU *head = stu->head;  //头节点
+    STU *endpt;    //控制循环比较
+    STU *p;        //临时指针变量
+    STU *p1, *p2;
 
-        p1 = (STU *)malloc(LEN);
-        p1->next = head;        //注意理解：我们增加一个节点，放在第一个节点的前面，主要是为了便于比较。因为第一个节点没有前驱，我们 不能交换地址
-        head = p1;                 //让head指向p1节点，排序完成后，我们再把p1节点释放掉
+    p1 = (STU *)malloc(LEN);
+    p1->next = head;            //定义一个虚拟节点
+    head = p1;                  //让head指向p1节点，排序完成后，再把p1节点释放掉
 
-        for (endpt = NULL; endpt != head; endpt = p) {
-                for (p = p1 = head; p1->next->next != endpt; p1 = p1->next) {
-                        if (strcmp(p1->next->name, p1->next->next->name)>0) { //如果前面的节点键值比后面节点的键值大，则交换
-                                p2 = p1->next->next;
-                                p1->next->next = p2->next;
-                                p2->next = p1->next;
-                                p1->next = p2;     //结合第4点理解
-                                p = p1->next->next;   //结合第6点理解
-                        }
-                }
+    //循环排序
+    for (endpt = NULL; endpt != head; endpt = p) {
+        for (p = p1 = head; p1->next->next != endpt; p1 = p1->next) {
+            if (strcmp(p1->next->name, p1->next->next->name)>0) { //如果前面的节点键值比后面节点的键值大，则交换
+                p2 = p1->next->next;
+                p1->next->next = p2->next;
+                p2->next = p1->next;
+                p1->next = p2;     
+                p = p1->next->next;   
+            }
         }
+    }
 
-        p1 = head;              //把p1的信息去掉
-        head = head->next;       //让head指向排序后的第一个节点
-        free(p1);          //释放p1
-        p1 = NULL;          //p1置为NULL，保证不产生“野指针”，即地址不确定的指针变量
+    p1 = head;                  //把p1的信息去掉
+    head = head->next;          //让head指向排序后的第一个节点
+    free(p1);                   //释放p1
+    p1 = NULL;                  //p1置为NULL，避免野指针
     stu->head = head;
 
-        return stu;
+    return stu;
 }
 
 
 
 void  search_by_Num(STU_M *stu) {
-    erase();                //
-    gui();
-    refresh();
-    STU *head = stu->head;
-    int n = stu->stu_num;
-    int m = stu->course_num;
-        long num;
-        int i;
-        int flag = 1;
-        printf("\t\t\t");
-        scanf("%ld", &num);
-        STU *p;
-        p = head;
-        if (head != NULL) {
-                do {
-                        if (p->id == num) {
-                                printf("\t\t\t");
-                                printf("%ld\t%s\t", p->id, p->name);
-                                for (i = 0; i<m; i++) {
-                                        printf("%.0f\t", p->score[i]);
-                                }
-                                printf("%.0f\t%.0f\n", p->sum, p->sum / m);
-                                flag = 0;
+    erase();                            //清屏
+    gui();                              //画框架
+    refresh();                          //刷新
+    STU *head = stu->head;              //定义一个头节点
+    int n = stu->stu_num;               //学生数赋值给n
+    int m = stu->course_num;            //课程数赋值给m
+    long num;                           //定义一个学号变量
+    char *in = (char *)malloc(sizeof(char) * 2 * MAX_LEN); //定义一个行数变量并申请一个字符串空间
+    int line = 2;                       //定义个行变量
+    int flag = 1;                       //定义一个标志
 
-                        }
-                        p = p->next;
-
-                } while (p != NULL);
-                if (flag) {
-                        printf("\t\t\t");
-                        printf("Not found!\n");
+    move(line, 4);                      //移动
+    addstr("情输入学号:");               //添加字符串到屏幕
+    refresh();                          //刷新
+    color_print(line, 12, COLOR_BLUE, COLOR_BLACK, INTIP, &color_flag); //颜色输出
+    getstr(in);                         //输入in
+    num = atol(in);                     //字符串转整形
+    STU *p;                             //定义一个学生指针变量
+    p = head;                           //p等于头节点
+    ++line;                             //行+1
+    ++line;                             //行+1
+    if (head != NULL) {                 //循环查找
+        do {
+            if (p->id == num) {         //判断学号是否等于输入得学号
+                sprintf(in, "%ld\t%s\t", p->id, p->name); //姓名格式化输出到in
+                for (int i = 0; i<m; i++) {
+                        sprintf(in, "%s\t%.2f\t", in, p->score[i]); //成绩格式化输出到in
                 }
+                sprintf(in, "%s\t%.2f\t%.2f\n", in, p->sum, p->sum / m); //总分,平均分格式化输出到in
+                move(line, 4);          //移动
+                addstr(in);             //添加到屏幕
+                flag = 0;               //flag标记0
+            }
+            p = p->next;                //p指向下一个节点
+        
+        } while (p != NULL);
+        if (flag) {                     //如过未找到
+            move(line, 4);              //移动
+            addstr("未找到");           //添加到屏幕
         }
-        printf("\t\t\t******************************************************************************\n");
+    }    
+    line += 2;                             //行+2
+    color_print(line, 4, COLOR_GREEN, COLOR_BLACK, \
+                "按任意键回到菜单", &color_flag);
+
+    refresh();                          //刷新
+    getch();                            //获取一个字符输入
+    free(in);                           //释放in得空间
 
 }
 
 void  search_by_Name(STU_M *stu) {
-    int n = stu->stu_num;
-    int m = stu->course_num;
-    STU *head = stu->head;
-        char name[MAX_LEN];
-        int i;
-        int flag = 1;
-        printf("\t\t\t");
-        scanf("%s", name);
-        STU *p;
-        p = head;
-        if (head != NULL) {
-                do {
-                        if (strcmp(name, p->name) == 0) {
-                                printf("\t\t\t");
-                                printf("%ld\t%s\t", p->id, p->name);
-                                for (i = 0; i<m; i++) {
-                                        printf("%.0f\t", p->score[i]);
-                                }
-                                printf("%.0f\t%.0f\n", p->sum, p->sum / m);
-                                flag = 0;
-                        }
-                        p = p->next;
+    erase();                        //清屏
+    gui();                          //画框架
+    int line = 2;                   //定义行变量
+    int n = stu->stu_num;           //学生数赋值给n
+    int m = stu->course_num;        //课程数赋值给m
+    char name[2 * MAX_LEN];             //定义一个学生姓名变量
+    int flag = 1;                   //定义一个标志等于1
 
-                } while (p != NULL);
-                if (flag) {
-                        printf("\t\t\t");
-                        printf("Not found!\n");
-                }
+    move(line, 4);                  //移动
+    color_print(line, 4, COLOR_BLUE, COLOR_BLACK, INTIP, &color_flag);
+    ++line;                         //行+1
+    refresh();                      //刷新
+    getstr(name);                   //输入
+    STU *p;                         //定义一个节点p
+    p = stu->head;                       //p等于头节点
+
+    //循环查找
+    while (p != NULL) {
+        if (strcmp(name, p->name) == 0) {               //如果找到
+            sprintf(name, "%ld\t%s\t", p->id, p->name); //格式化姓名输出到name
+            for (int i = 0; i<m; i++) {                 //循环输出成绩
+                sprintf(name, "%s\t%.2f\t", name, p->score[i]);     //格式化输出成绩到name
+            }
+            sprintf(name, "%s\t%.2f\t%.0f\n", name, p->sum, p->sum / m); //格式化输出总分平均分到name
+            flag = 0;
+            break;
         }
-        printf("\t\t\t******************************************************************************\n");
+        p = p->next;
 
+    }
+    if (flag) {                 //如果为未找到
+        ++line;
+        color_print(line, 4, COLOR_RED, COLOR_BLACK, "未找到", &color_flag);     //颜色输出
+    } else {
+        ++line;                                         //行+1
+        move(line, 4);                                  //移动
+        addstr(name);                                   //添加到屏幕
+    }
+    line += 2;                                          //行+2
+    color_print(line, 4, COLOR_GREEN, COLOR_BLACK, \
+                "按任意键回到菜单", &color_flag);       //颜色输出
+    refresh();                                          //刷新
+    getch();
+    return ;
 }
 
 void  statistic_analysis(STU_M *stu) {
-    int n = stu->stu_num;
-    int m = stu->course_num;
-        int a[6] = {0};
-        STU *p;
-        p = stu->head;
-        double cnt = 0.0;
-        for (int i = 0; i < m; i++) {
-                p = stu->head; // 初始化，不然会炸
-                for (int j = 0; j < 6; j++) {// 初始化
-                        a[j] = 0;
-                }
-            cnt = 0.0;
-                do {
-                        if (p->score[i]<60) {
-                                a[0]++, cnt++;
-                        }
-                        else if (p->score[i]<70) {
-                                a[1]++, cnt++;
-                        }
-                        else if (p->score[i]<80) {
-                                a[2]++, cnt++;
-                        }
-                        else if (p->score[i]<90) {
-                                a[3]++, cnt++;
-                        }
-                        else if (p->score[i]<100) {
-                                a[4]++, cnt++;
-                        }
-                        else {
-                                a[5]++, cnt++;
-                        }
-
-                        p = p->next;
-
-                } while (p != NULL);
-                printf("\n\n\n");
-                printf("\t\t\t******************************************************************************\n");
-                printf("\t\t\t* For %s:\n", stu->course_name[i]);
-                printf("\t\t\t* <60\t%d\t%.2f%%\n", a[0], 100 * a[0] / cnt);
-                printf("\t\t\t* %d-%d\t%d\t%.2f%%\n", 60, 69, a[1], 100 * a[1] / cnt);
-                printf("\t\t\t* %d-%d\t%d\t%.2f%%\n", 70, 79, a[2], 100 * a[2] / cnt);
-                printf("\t\t\t* %d-%d\t%d\t%.2f%%\n", 80, 89, a[3], 100 * a[3] / cnt);
-                printf("\t\t\t* %d-%d\t%d\t%.2f%%\n", 90, 99, a[4], 100 * a[4] / cnt);
-                printf("\t\t\t* %d\t%d\t%.2f%%\n", 100, a[5],  100 * a[5] / cnt);
-                printf("\t\t\t******************************************************************************\n");
-
+    erase();                        //清屏
+    gui();                          //话框架
+    int line = 2;                   //定义一个行数变量
+    int n = stu->stu_num;           //n为学生数
+    int m = stu->course_num;        //m为课程数
+    int a[6] = {0};                 //数组存放结果
+    STU *p;                         //结点p用来遍历
+    char *str = (char *)malloc(sizeof(char) * 2 * MAX_LEN); //申请一个字符串用来记录信息
+    p = stu->head;                  //p结点等于头结点   
+    double cnt = 0.0;               //cnt用来记录总人数
+    
+    for (int i = 0; i < m; i++) {
+        p = stu->head;              //每次开始前初始化p结点
+        for (int j = 0; j < 6; j++) {//初始化
+            a[j] = 0;
         }
+        cnt = 0.0;
+        //循环统计
+        do {
+            if (p->score[i]<60) {       //如果小于60分
+                a[0]++, cnt++;
+            }
+            else if (p->score[i]<70) {  //如果小于70分
+                a[1]++, cnt++;
+            }
+            else if (p->score[i]<80) {  //如果小于80分
+                a[2]++, cnt++;
+            }
+            else if (p->score[i]<90) {  //如果小于90分
+                a[3]++, cnt++;
+            }
+            else if (p->score[i]<100) { //如果小于100分
+                a[4]++, cnt++;
+            }
+            else {                      //否则100分
+                a[5]++, cnt++;
+            }
+
+            p = p->next;
+        } while (p != NULL);
+        
+        move(line, get_winsize(COL) / 2 - 8);
+        addstr("统计如下");
+        line += 2;                          //行+2
+        int right = get_winsize(COL) - 1;   //右边框
+        for (int i = 1; i < right; i++) {   //循环输出操作
+            move(line, i);                  //移动
+            addch('-');                     //添加'-'
+        }
+        line += 2;
+
+        sprintf(str, "* For %s:", stu->course_name[i]);
+        move(line,(get_winsize(COL) - strlen(str)) / 2 - 5);
+        addstr(str);
+        refresh();
+
+        line += 2;
+        sprintf(str, "* <60\t%d\t%.2f%%", a[0], 100 * a[0] / cnt);
+        color_print(line, (get_winsize(COL) - strlen(str)) / 2 - 10, COLOR_RED, COLOR_BLACK, str, &color_flag);
+        refresh();
+        
+        ++line;
+        sprintf(str, "* %d-%d\t%d\t%.2f%%", 60, 69, a[1], 100 * a[1] / cnt);
+        color_print(line, (get_winsize(COL) - strlen(str)) / 2 - 10, COLOR_MAGENTA, COLOR_BLACK, str, &color_flag);
+        refresh();
+
+        ++line;
+        sprintf(str, "* %d-%d\t%d\t%.2f%%", 70, 79, a[2], 100 * a[2] / cnt);
+        color_print(line, (get_winsize(COL) - strlen(str)) / 2 - 10, COLOR_YELLOW, COLOR_BLACK, str, &color_flag);
+        refresh();
+
+        ++line;
+        sprintf(str, "* %d-%d\t%d\t%.2f%%", 80, 89, a[3], 100 * a[3] / cnt);
+        color_print(line, (get_winsize(COL) - strlen(str)) / 2 - 10, COLOR_CYAN, COLOR_BLACK, str, &color_flag);
+        refresh();
+
+        ++line;
+        sprintf(str, "* %d-%d\t%d\t%.2f%%", 90, 99, a[4], 100 * a[4] / cnt);
+        color_print(line, (get_winsize(COL) - strlen(str)) / 2 - 10, COLOR_BLUE, COLOR_BLACK, str, &color_flag);
+        refresh();
+        
+        ++line;
+        sprintf(str, "* %d\t%d\t%.2f%%", 100, a[5],  100 * a[5] / cnt);
+        color_print(line, (get_winsize(COL) - strlen(str)) / 2 - 10, COLOR_GREEN, COLOR_BLACK, str, &color_flag);
+        refresh();
+
+        ++line;
+
+    }
+    ++line;
+    sprintf(str, "按任意键返回菜单");
+    color_print(line, (get_winsize(COL) - strlen(str)) / 2, \
+                COLOR_BLUE, COLOR_BLACK, "按任意键返回菜单", &color_flag);
+    free(str);
+    getch();
+
+    return ;
 }
 
 
@@ -834,7 +921,7 @@ int get_stu_msg(STU_M *stu) {
     getstr(in);                                 //输入
     n = str_to_int(in);                         //字符串转整数
     while (n < 0) {
-        color_print(line + 1, 4, COLOR_RED, COLOR_BLACK, "(输入错误，请重新输入 学生数不能小于0)");
+        color_print(line + 1, 4, COLOR_RED, COLOR_BLACK, "(输入错误，请重新输入 学生数不能小于0)", &color_flag);
         move(line, 25);                             //移动
         addstr(menu_str[0]);
         move(line, 25);                             //移动
@@ -850,7 +937,7 @@ int get_stu_msg(STU_M *stu) {
     int new_stu = n;
     int new_course = stu->course_num;
 
-    color_print(line + 1, 4, COLOR_RED, COLOR_BLACK, "(输入正确");      //颜色输出
+    color_print(line + 1, 4, COLOR_RED, COLOR_BLACK, "(输入正确", &color_flag);      //颜色输出
 
     if (stu->stu_num == 0) {
         ++line;
@@ -861,7 +948,7 @@ int get_stu_msg(STU_M *stu) {
         getstr(in);                                 //输入
         n = str_to_int(in);                         //字符串转整型
         while (n <= 0) {
-            color_print(line + 1, 4, COLOR_RED, COLOR_BLACK, "(输入错误，课程数大于0)");
+            color_print(line + 1, 4, COLOR_RED, COLOR_BLACK, "(输入错误，课程数大于0)", &color_flag);
             move(line, 21);                             //移动
             addstr(menu_str[0]);
             move(line, 21);                             //移动
@@ -873,7 +960,7 @@ int get_stu_msg(STU_M *stu) {
         new_course = 0;                                 
         move(line + 1, 4);
         addstr(menu_str[0]);                            //清空
-        color_print(line + 1, 4, COLOR_GREEN, COLOR_BLACK, "(输入正确)");
+        color_print(line + 1, 4, COLOR_GREEN, COLOR_BLACK, "(输入正确)", &color_flag);
         
         //开辟课程名空间
         stu->course_name = (char **)malloc(sizeof(char *) * stu->course_num);
@@ -921,7 +1008,7 @@ int get_stu_msg(STU_M *stu) {
 
 
 
-    color_print(line, strlen(in) * 2, COLOR_RED, COLOR_BLACK, "输入\"no\"回车取消录入，输入其他回车开始录入: "); //有颜色输出
+    color_print(line, strlen(in) * 2, COLOR_RED, COLOR_BLACK, "输入\"no\"回车取消录入，输入其他回车开始录入: ", &color_flag); //有颜色输出
     
     //判断是否取消录入
     getstr(in);
@@ -992,13 +1079,13 @@ int get_conf_value(char *file, char *key, char *val) {
     ssize_t read;                               //定义一个记录返回长度的变量
 
     if (key == NULL) {                          //如果key为空
-        printf("error\n");                      //报错
+        writ_log_file(FALSE, "key错误");        //写日志
         return ret;
     }
     fp = fopen(file, "r");                      //以只读打开文件
 
     if (fp == NULL) {                           //打开失败
-        printf("Open CONF file error!\n");    //报错
+        writ_log_file(FALSE, "打开配置文件错误");   //写日志
         return ret;
     }
 
@@ -1018,7 +1105,9 @@ int get_conf_value(char *file, char *key, char *val) {
         }
     }
     if (substr == NULL) {                       //如果没找到
-        printf("%s Not found in %s!\n", key, file);
+        char tmp[30];
+        sprintf(tmp, "在%s中未找到%s配置文件", file, key);
+        writ_log_file(FALSE, tmp);
         ret = -1;
     }
     fclose(fp);                                 //关闭文件
@@ -1028,14 +1117,23 @@ int get_conf_value(char *file, char *key, char *val) {
 
 //按学号删除函数
 int on_id_del(STU_M *stu) {
+    erase();                                    //清屏
+    gui();                                      //画框架
     STU *head = (STU *)malloc(sizeof(STU));     //定义一个学生虚拟头结点
     head->next = stu->head;                     //虚拟头结点的下个结点等于学生实际头结点
     STU *node = head;                           //定义一个结点等于虚拟头结点
     STU *tmp;                                   //定义一个临时结点用来标记删除的结点
+    char *str = (char *)malloc(sizeof(char) * MAX_LEN);  //str用来输入
+    int line = 2;                               //定义一个行数变量
+    int flag = 1;                               //定义一个判断标志
     int num, ret = FALSE;                       //定义输入变量和返回值
-    system("clear");
-    printf("请输入要删除的学号:");
-    scanf("%d", &num);                          //输入
+
+    move(line, 4);
+    addstr("请输入要删除的学号:");              //添加到屏幕
+    move(line, 24);
+    getstr(str);                                //输入            
+    refresh();                                  //刷新
+    num = atoi(str);                            //字符串转换为整数   
 
     //循环查找
     while (node->next) {
@@ -1048,26 +1146,45 @@ int on_id_del(STU_M *stu) {
             free(tmp);                          //释放结点
             ret = TRUE;                         //标记返回值成功删除
             stu->stu_num--;
-            printf("删除成功\n");
+            line += 2;
+            move(line, 4);
+            color_print(line, 4, COLOR_GREEN, COLOR_BLACK, "删除成功", &color_flag); //颜色输出
+            flag = 0;                           //标记标志
             break;                              //跳出循环
         }
         node = node->next;
     }
+    if (flag) {
+        line += 2;
+        color_print(line, 4, COLOR_RED, COLOR_BLACK, "没有该学号的学生", &color_flag); //颜色输出
+    }
     free(head);                                 //释放虚拟头结点
+    head = NULL;                                //头节点置空，避免野指针
+    free(str);                                  //释放str空间
+    str = NULL;                                 //str制空，避免野指针
+    line += 2;                                  //行+1
+    color_print(line, 4, COLOR_BLUE, COLOR_BLACK, \
+                "按任意键返回菜单", &color_flag);
+    refresh();
+    getch();
     return ret;
 }
 
 //按姓名删除函数
 int on_name_del(STU_M *stu) {
+    erase();                                    //清屏
+    gui();                                      //画框架
     STU *head = (STU *)malloc(sizeof(STU));     //定义一个学生虚拟头结点
     head->next = stu->head;                     //虚拟头结点的下个结点等于学生实际头结点
     STU *node = head;                           //定义一个结点等于虚拟头结点
     STU *tmp;                                   //定义一个临时结点
-    int ret = FALSE;                            //定义一个返回变量
+    int ret = TRUE;                            //定义一个返回变量
+    int line = 2;                               //定义一个行数变量
     char *str = (char *)malloc(sizeof(char) * MAX_LEN); //定义一个字符串用于输入
-    system("clear");
-    printf("请输入要删除的名字: ");
-    scanf("%s", str);
+    move(line, 4);                              //移动
+    addstr("请输入要删除的名字: ");             //添加到屏幕
+    refresh();                                  //刷新
+    getstr(str);                                //输入
     while (node->next) {                        //循环查找
         if (strcmp(node->name, str) == 0) {     //如果找到
             tmp = node->next;                   //临时结点标记
@@ -1078,25 +1195,44 @@ int on_name_del(STU_M *stu) {
             free(tmp);                          //释放删除的结点
             ret = TRUE;                         //标记返回值删除成功
             stu->stu_num--;
-            printf("删除成功\n");
+            line += 2;
+            color_print(line, 4, COLOR_GREEN, COLOR_BLACK, "删除成功", &color_flag);
+            ret = FALSE;
             break;                              //跳出循环
         }
         node = node->next;
     }
+    if (ret) {
+        line += 2;
+        color_print(line, 4, COLOR_GREEN, COLOR_BLACK, "没有该学生", &color_flag);
+    }
     free(head);                                 //释放虚拟头结点
+    head = NULL;                                //head置空，避免野指针
     free(str);                                  //释放字符串变量
+    str = NULL;                                 //str制空，避免野指针
+    line += 2;
+    color_print(line, 4, COLOR_BLUE, COLOR_BLACK, \
+                "按任意键返回菜单", &color_flag);
+    refresh();
+    getch();
+
     return ret;
 }
 
 //删除全部学生函数
 int all_del(STU_M *stu) {
+    erase();                                                //清屏
+    gui();                                                  //画框架
     char *dstr = (char *)malloc(sizeof(char) * MAX_LEN);    //定义一个确认字符串
-    printf("确定删除全部学生信息？请输入: (1. 确定,任意键取消)\n");
-    scanf("%s", dstr);                                      //输入是否删除
-    int ret = str_to_int(dstr);                             //字符串转换为整数
+    int line = 5;                                           //定义一个行数变量
+    color_print(line, 6, COLOR_RED, COLOR_BLACK,\
+    "确定删除全部学生信息？请输入: (\"1\"或\"yes\" 确定,任意键取消)", &color_flag);   //颜色输出
+    ++line;
+    color_print(line, 6, COLOR_RED, COLOR_BLACK, INTIP, &color_flag);   //颜色输出
+    getstr(dstr);                                      //输入是否删除
 
     //删除
-    if (ret == 1) {                                         //如果删除
+    if ((strcmp(dstr, "yes") == 0) || (strcmp(dstr, "1") == 0)) {                                         //如果删除
         STU *head = stu->head;                              //定义一个头结点
         STU *tmp;                                           //定义一个临时结点
         stu->head = NULL;                                   //学生管理结构体头结点置空
@@ -1107,9 +1243,21 @@ int all_del(STU_M *stu) {
             head = tmp->next;                               //头结点指向下一个结点
             free(tmp);                                      //释放临时结点
         }
+        line += 2;
+        color_print(line, 6, COLOR_RED, COLOR_BLACK, "已删除", &color_flag);
+
+    } else {
+        line += 2;
+        color_print(line, 6, COLOR_GREEN, COLOR_BLACK, "已取消", &color_flag);
     }
+    ++line;
+    color_print(line, 6, COLOR_BLUE, COLOR_BLACK, \
+                "按任意键返回菜单", &color_flag);
+    refresh();
+    getch();
     free(dstr);                                             //释放字符串
-    return ret;
+    dstr = NULL;                                            //str置空，避免野指针
+    return 0;
 }
 
 //发送数据给服务器
@@ -1166,14 +1314,15 @@ void menu() {
 }
 
 //添加有颜色的输出
-void color_print(int x, int y, int foreground, int background, char *p) {	
-    if(start_color()==OK) {                     //判断终端是否支持有颜色输出
-	    init_pair(1, foreground, background);   //初始化颜色，前景、背景
+void color_print(int x, int y, int foreground, int background, char *p, int *flag) {	
+    if(start_color() == OK) {                     //判断终端是否支持有颜色输出
+	    init_pair(*flag, foreground, background);   //初始化颜色，前景、背景
 
-	    attron(COLOR_PAIR(1));                  //开始有颜色输出
+	    attron(COLOR_PAIR(*flag));                  //开始有颜色输出
 	    move(x, y);                             //移动到x,y
 	    addstr(p);                              //绘制
-	    attroff(COLOR_PAIR(1));                 //结束有颜色输出
+	    attroff(COLOR_PAIR(*flag));                 //结束有颜色输出
+        ++(*flag);
     } else {
 	    move(x, y);                             //移动到x,y
 	    addstr(p);                              //绘制

@@ -1,5 +1,5 @@
 /*************************************************************************
-	> File Name: common.h
+	> File Name: scommon.h
 	> Author: Allen Lee 
 	> Mail: trainlee1024@gmail.com
 	> Created Time: Wed Jul 22 18:03:05 2020

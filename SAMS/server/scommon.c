@@ -1,11 +1,11 @@
 /*************************************************************************
-	> File Name: common.c
+	> File Name: scommon.c
 	> Author: Allen Lee 
 	> Mail: trainlee1024@gmail.com
 	> Created Time: Wed Jul 22 18:03:08 2020
  ************************************************************************/
 
-#include "common.h"
+#include "scommon.h"
 
 //学生结构体
 typedef struct student {
