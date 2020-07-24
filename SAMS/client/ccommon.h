@@ -30,10 +30,10 @@
 #endif
 
 #define MAX_LEN 20
-#define CONF_FILE "./clinet.conf"
+#define CONF_FILE "./client.conf"
 #define TRUE    1                       // 正确宏
 #define FALSE   0                       // 错误宏
-#define LOG_FILE        "clinet.log"    // 日志文件名
+#define LOG_FILE        "client.log"    // 日志文件名
 #define STUDENT_FILE    "student.txt"   // 学生数据文件
 #define LEN sizeof(struct student)
 

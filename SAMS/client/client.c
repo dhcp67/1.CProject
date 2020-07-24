@@ -1,5 +1,5 @@
 /*************************************************************************
-	> File Name: clinet.c
+	> File Name: client.c
 	> Author: Allen Lee 
 	> Mail: trainlee1024@gmail.com
 	> Created Time: Sun Jul 19 18:27:18 2020

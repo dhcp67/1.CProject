@@ -16,9 +16,6 @@ server : $(file)
 debug: ${file}
 	${CC} -g -DDEBUG -o $@ ${file} -lpthread
 
-test.o : test.c
-	${CC} -c test.c -o $@
-
 scommon.o: scommon.c
 	${CC} -c scommon.c -o $@
 

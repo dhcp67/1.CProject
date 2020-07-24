@@ -6,23 +6,23 @@
 # make_file
 
 CC=gcc
-file=test.o
+file=client.o ccommon.o
 
-run : $(file)
-	# make run
-	${CC} -o $@ ${file}
+client : $(file)
+	@# make client
+	${CC} -o $@ ${file} -lncursesw
 
 #.PHONY: debug
 debug: ${file}
-	${CC} -g -DDEBUG -o $@ test.c
+	${CC} -g -DDEBUG -o $@ ${file} -lpthread
 
-test.o : test.c
-	${CC} -c test.c -o $@
+client.o: client.c
+	${CC} -c client.c -o $@
 
-common.o: common.c
-	${CC} -c common.c -o $@
+ccommon.o: ccommon.c
+	${CC} -c ccommon.c -o $@
 
 #.PHONY: clear
 clear: 
-	rm *.o run debug
-	@echo "OK"
+	rm *.o client debug
+	@echo "clear OK"
